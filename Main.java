@@ -3,6 +3,7 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        System.out.println("Pruebita ");
         /*
               VACAMU gestor = new VACAMU();
         gestor.crear("ejemplo");
