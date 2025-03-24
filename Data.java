@@ -61,20 +61,19 @@ public class Data {
             System.out.println("Nombre del archivo: ");
 
             String nombreArchivo = br.readLine();
-
-            //Verificacion caracteres reservados
-            for(int i = 0; i < nombreArchivo.length(); i++){
-                //Verifica el nombre del archivo no contenga un caracter reservado
-                if((nombreArchivo.charAt(i) > 34 && nombreArchivo.charAt(i) < 47) || (nombreArchivo.charAt(i)> 58 && nombreArchivo.charAt(i) < 63) || nombreArchivo.charAt(i) == 92 || nombreArchivo.charAt(i) == 124){
-                    for(int j = 0; j < reservados.length; j++){
-                        if(nombreArchivo.charAt(i) == reservados[j]){
-                            System.out.println("Nombre de archivo no válido, contiene alguno de estos caracteres reservados: ");
-                            System.out.println(" '\"', '$', '%', '*', '/', ':', '<', '>', '?', '\\', '|'");
-                            return;
-                        }
+            
+            //Verifica que el nombre del archivo no contenga un caracter reservado
+            for (char c : nombreArchivo.toCharArray()) {
+                for (char reservado : reservados) {
+                    if (c == reservado) {
+                        System.out.println("Nombre de archivo no valido, contiene alguno de estos caracteres reservados: ");
+                        System.out.println(" '\"', '$', '%', '*', '/', ':', '<', '>', '?', '\\', '|'");
+                        return;
                     }
                 }
             }
+            System.out.println("Nombre correcto");
+            
 
             //Escritura de Metadatos
             metawriter.seek(metawriter.length());
