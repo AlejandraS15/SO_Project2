@@ -25,8 +25,8 @@ public class Main {
         String nombre1 = "Archivo";
         Data txt = new Data();
         
-        txt.create();
-        txt.write("HOLAAAA");
+        //xtxt.create();
+        txt.write("ashdsj");
         txt.read();
 
 
