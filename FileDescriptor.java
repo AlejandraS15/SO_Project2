@@ -39,7 +39,7 @@ import java.util.List;
         public void read(int bytes) { //Esta función recibe como parametros la cantidad de bytes que se van a leer del archivo
 
 
-            if(offset + bytes > fileSize){
+            if(offset + bytes > fileSize){ //NO ESTOY SEGURO SI ES CON OFFSET O BLOCKOFFSET
                 System.out.println("No se pueden leer más bytes de los que tiene el archivo");
                 return;
             }
