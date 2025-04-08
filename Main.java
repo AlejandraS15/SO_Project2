@@ -1,34 +1,20 @@
 import java.io.IOException;
+import java.io.File;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Pruebita ");
-        /*
-              VACAMU gestor = new VACAMU();
-        gestor.crear("ejemplo");
-        gestor.escribir("ejemplo", 0 , "archivo de prueba");
-        gestor.escribir("ejemplo", 0 ,"segunda versión del archivo");
-        gestor.escribir("ejemplo", 0 ,"tercera versión con más cambios");
-
-        for(int i = 0; i < 50; i++){
-            gestor.escribir("ejemplo", 0,  "version" + i);
-        }
-
-        gestor.leerultimo("ejemplo");
-
-        gestor.listarVersiones("ejemplo");
-
-        gestor.leerVersion("ejemplo", "version_2025-03-21T153833949530300.txt");
-        */
-
-        String nombre1 = "Archivo";
+        System.out.println("Prueba ");
         Data txt = new Data();
         
-        //xtxt.create();
-        txt.write("ashdsj");
-        txt.read();
+        File file = new File("archivo_14kb.txt");
+        File file2 = new File("bloques_14kb.txt");
+        //txt.saveDataBin(file);
+        txt.saveDataBin(file2);
+        int []bloques = {1,3,5,7}; //Aqui se estan realizando pruebas tomando bloques arbitrarios de ambos archivos, cada cambio de letras son 4kb
+        //txt.openFileBin("test.bin", bloques);
+        txt.openFileMemoryMap(bloques);
 
-
+        
     }
 }
