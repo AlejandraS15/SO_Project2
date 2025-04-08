@@ -154,11 +154,15 @@ public class Data {
             RandomAccessFile metareader = new RandomAccessFile(metatxt, "r");
             String line;
     
+            // Nos ubicamos en data
+            RandomAccessFile datafile = new RandomAccessFile(datatxt, "rw");
+
             while ((line = metareader.readLine()) != null) {
                 if (line.startsWith(nombreArchivo + "?")) {
                     String[] partes = line.split("\\$");
                     if (partes.length < 2 || partes[1].isEmpty()) {
                         System.out.println("El archivo no tiene bloques asignados.");
+                        datafile.close();
                         return null;
                     }
     
@@ -167,7 +171,7 @@ public class Data {
                     int primerBloque = Integer.parseInt(bloques[0]); // Primer bloque asignado
     
                     // Nos ubicamos en data
-                    RandomAccessFile datafile = new RandomAccessFile(datatxt, "rw");
+                    //RandomAccessFile datafile = new RandomAccessFile(datatxt, "rw");
                     datafile.seek(primerBloque * 4096); // Ir al inicio del archivo en data
     
                     metareader.close();

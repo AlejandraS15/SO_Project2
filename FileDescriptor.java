@@ -4,8 +4,8 @@ import java.util.List;
     public class FileDescriptor {
         //Esta clase ayuda a llevar registro de los programas abiertos, nombre de los archivos abiertos, el modo de lectura el Random Acces File asociado;
 
-        public static List<FileDescriptor> filedescriptors;
-        private static int fdcount;
+        public static List<FileDescriptor> filedescriptors; //Aqui se guardan de manera estática todos los file descriptors
+        private static int fdcount; //Contador global para asignar numero a cada file descriptor
 
         private RandomAccessFile raf;
         private String filename;
