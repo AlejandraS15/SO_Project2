@@ -1,98 +1,156 @@
+package com.cow;
 import java.io.RandomAccessFile;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-    public class FileDescriptor {
-        //Esta clase ayuda a llevar registro de los programas abiertos, nombre de los archivos abiertos, el modo de lectura el Random Acces File asociado;
+public class FileDescriptor {
+    //Esta clase ayuda a llevar registro de los programas abiertos, nombre de los archivos abiertos, el modo de lectura el Random Acces File asociado;
+    public static List<FileDescriptor> filedescriptors = new ArrayList<>();
+    private RandomAccessFile raf;
+    private String filename;
+    private static int[] blocks;
+    private int fileSize;
+    private int offset;
+    private int blockOffset;
+    private int indexBlock; // Índice del bloque actual en el array de bloques
+    private byte[] loadedBlock; // Bloque cargado a memoria para leer/escribir
+    private static final int blockSize = 4096;
 
-        public static List<FileDescriptor> filedescriptors; //Aqui se guardan de manera estática todos los file descriptors
-        private static int fdcount; //Contador global para asignar numero a cada file descriptor
 
-        private RandomAccessFile raf;
-        private String filename;
-        private int fd;
-        private int[] blocks;
-        private String mode; // 0 = "r", 1 = "rw"
-        private int fileSize;
-        
-        private int offset;
-        private int blockOffset; 
-        private int indexBlock; //Indice del bloque actual en el array de bloques
-        private byte [] loadedBlock; //Bloque cargado a memoria para leer/escribir
-        private int blockSize = 4096;
 
-        public FileDescriptor(RandomAccessFile raf, String filename, int[] bloques, String modo) { //Cada file descriptor
-            this.raf = raf; //Random Acces File del archivo que queremos leer/escribir
-            this.filename = filename; //Nombre del archivo
-            this.blocks = bloques; //Array con los bloques que conforman este archivo
-            this.mode = modo; //modo del random acces file que abrió el archivo, lectura o escritura
-
-            FileDescriptor.fdcount++; //int de la clase para asignar un numero entero a cada file descriptor
-            this.fd = fdcount; //establece el entero correspondiente a este file descriptor
-
-            this.offset = 0; // el offset empieza en cero
-            this.fileSize = this.blocks.length*blockSize; //calcula el tamaño del archivo
-
-            FileDescriptor.filedescriptors.add(this); //añade este file descriptor a la lista estática de los filedescriptros
+    public FileDescriptor(RandomAccessFile raf, String filename, int[] bloques, String modo) {
+        this.raf = raf; // RandomAccessFile del archivo que queremos leer/escribir
+        this.filename = filename; // Nombre del archivo
+        FileDescriptor.blocks = bloques; // Array con los bloques que conforman este archivo
+        this.offset = 0; // El offset empieza en cero
+        this.fileSize = blocks.length * blockSize; // Calcula el tamaño del archivo
+        FileDescriptor.filedescriptors.add(this); // Añade este file descriptor a la lista estática
+    }
+    public String getFilename() {
+        return filename;
+    }
+    //READ
+    public void read(int bytes) {
+        if (offset + bytes > fileSize) {
+            System.out.println("No se pueden leer más bytes de los que tiene el archivo");
+            return;
         }
-
-
-        public void read(int bytes) { //Esta función recibe como parametros la cantidad de bytes que se van a leer del archivo
-
-
-            if(offset + bytes > fileSize){ //NO ESTOY SEGURO SI ES CON OFFSET O BLOCKOFFSET
-                System.out.println("No se pueden leer más bytes de los que tiene el archivo");
-                return;
-            }
-
-
+    
+        try {
             while (bytes > 0) {
-        
                 if (loadedBlock == null) {
-                    readBlock(indexBlock); // Carga el bloque actual
+                    readBlock(indexBlock);
                 }
-        
+    
                 int bytesDispBlock = blockSize - blockOffset;
-                int bytesToRead = bytes - bytesDispBlock;
-        
-                if (bytesToRead <= 0) { //Hay suficientes bytes en el bloque actual
-                    for (int i = 0; i < bytes; i++) {
-                        System.out.println(loadedBlock[blockOffset + i]);
-                    }
-        
-                    blockOffset += bytes;
-                    offset += bytes;
-                    bytes = 0;
+                int bytesToRead = Math.min(bytes, bytesDispBlock);
+    
+                for (int i = 0; i < bytesToRead; i++) {
+                    System.out.print((char) loadedBlock[blockOffset + i]); // o imprimir como byte
                 }
-        
-                if (bytesToRead > 0) { // No hay suficientes bytes en el bloque actual, leemos lo que queda y pasamos al siguiente
-
-                    for (int i = 0; i < bytesDispBlock; i++) {
-                        System.out.println(loadedBlock[blockOffset + i]);
-                    }
-        
-                    offset += bytesDispBlock;
+    
+                blockOffset += bytesToRead;
+                offset += bytesToRead;
+                bytes -= bytesToRead;
+    
+                if (blockOffset >= blockSize) {
                     blockOffset = 0;
-                    bytes = bytesToRead;
-        
+                    indexBlock++;
+                    loadedBlock = null;
+                }
+            }
+    
+            System.out.println(); // salto de línea final
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        }
+    }
+    
+    private void readBlock(int i) throws IOException {
+        int bloque = blocks[i];
+        loadedBlock = new byte[blockSize];
+        raf.seek(bloque * blockSize);
+        raf.readFully(loadedBlock);
+    }
+    //WRITE
+    public void write(String dataToWrite) {
+        byte[] byteData = dataToWrite.getBytes(); 
+        int bytes = byteData.length;
+    
+        if (offset + bytes > fileSize) {
+            System.out.println("No se pueden escribir más bytes de los que tiene el archivo");
+            return;
+        }
+    
+        try {
+            int dataOffset = 0;
+    
+            while (bytes > 0) {
+    
+                if (loadedBlock == null) {
+                    readBlock(indexBlock); // Cargar el bloque actual en memoria
+                }
+    
+                int bytesDispBlock = blockSize - blockOffset;
+                int bytesToWrite = Math.min(bytes, bytesDispBlock);
+    
+                for (int i = 0; i < bytesToWrite; i++) {
+                    loadedBlock[blockOffset + i] = byteData[dataOffset + i]; // Copia byte por byte
+                }
+    
+                writeBlock(indexBlock, loadedBlock); // Escribir bloque actualizado
+                blockOffset += bytesToWrite;
+                offset += bytesToWrite;
+                dataOffset += bytesToWrite;
+                bytes -= bytesToWrite;
+    
+                if (blockOffset >= blockSize) {
+                    blockOffset = 0;
                     indexBlock += 1;
                     loadedBlock = null;
                 }
             }
-        }
-        
-        
-
-        public void readBlock(int numBlock){
-            try{
-
-                loadedBlock = new byte[blockSize];
-
-                this.raf.seek(this.blocks[indexBlock]*blockSize); //Busca el byte correspondiente al inicio del índice del bloque actual en el array de bloques
-                raf.read(loadedBlock);
-
-            } catch(Exception e){
-                e.printStackTrace();
-            }
+    
+        } catch (IOException e) {
+            System.err.println("Error al escribir: " + e.getMessage());
         }
     }
+    public void writeBlock(int numBlock, byte[] toWriteBlock) {
+        try {
+            raf.seek(FileDescriptor.blocks[numBlock] * blockSize);
+            raf.write(toWriteBlock, 0, blockSize);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static FileDescriptor getFileDescriptorByFilename(String filename) {
+        for (FileDescriptor fd : filedescriptors) {
+            if (fd.filename.equals(filename)) {
+                return fd;
+            }
+        }
+        return null; // Si no se encuentra el archivo
+    }
+    
+    public void close() {
+        try {
+            // Si hay algún bloque cargado que no ha sido guardado, lo escribimos
+            if (loadedBlock != null) {
+                writeBlock(indexBlock, loadedBlock);  // Escribir cualquier bloque pendiente en memoria
+            }
+            
+            // Cerrar el RandomAccessFile (raf) después de realizar todas las escrituras
+            raf.close();
+            System.out.println("Archivo cerrado correctamente.");
+            
+        } catch (IOException e) {
+            System.err.println("Error al cerrar el archivo: " + e.getMessage());
+        }
+    }
+    
+    
+    
+}
 
