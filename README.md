@@ -1,5 +1,5 @@
 # SO_Project2
-Desarrollo de una librería que implementa mecanismos de Copy-on-Write.
+Development of a library that implements Copy-on-Write mechanisms.
 
 ## Group Members
 
